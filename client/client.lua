@@ -1,10 +1,3 @@
---
--- * Created with PhpStorm
--- * User: Terbium
--- * Date: 12/07/2021
--- * Time: 13:09
---
-
 local PlayerPed = false
 local PlayerPos = false
 local PlayerLastPos = 0
@@ -15,23 +8,38 @@ local InUse = false
 local Anim = 'sit'
 local AnimScroll = 0
 
-Citizen.CreateThread(function()
+CreateThread(function()
     while true do
         PlayerPed = PlayerPedId()
         PlayerPos = GetEntityCoords(PlayerPedId())
-        Citizen.Wait(500)
+        Wait(500)
     end
 end)
 
+CreateThread(function()
+	while true do
+		Wait(2000)
+		for i = 1, #Config.objects.locations do
+			local current = Config.objects.locations[i]
+            local object = GetClosestObjectOfType(PlayerPos.x, PlayerPos.y, PlayerPos.x, 3.0, current.objName, false, false, false)
+            if object ~= 0 then
+                current.object = object
+			end
+		end
+	end
+end)
 
-Citizen.CreateThread(function()
+CreateThread(function()
     while true do
+        Wait(3)
         local inRange = false
         for i = 1, #Config.objects.locations do
             local current = Config.objects.locations[i]
             local coordsObject = GetEntityCoords(current.object)
             local dist = #(PlayerPos - vector3(coordsObject.x, coordsObject.y, coordsObject.z))
+
             if dist <= 3.0 then
+
                 inRange = true
                 if dist <= 2.0 and not InUse then
 
@@ -73,25 +81,12 @@ Citizen.CreateThread(function()
         end
 
         if not inRange then
-            Citizen.Wait(2000)
-        end
-        Citizen.Wait(3)
+            Wait(2000)
+        end        
     end
 end)
 
 
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(2000)
-		for i = 1, #Config.objects.locations do
-			local current = Config.objects.locations[i]
-            object = GetClosestObjectOfType(PlayerPos, 1.0, GetHashKey(current.objName), false, false, false)
-            if object ~= 0 then
-                current.object = object
-			end
-		end
-	end
-end)
 
 
 function RightScroller()
@@ -118,7 +113,7 @@ end
 
 RegisterNetEvent('ChairBedSystem:Client:Animation')
 AddEventHandler('ChairBedSystem:Client:Animation', function(v, coords)
-    local object = v.objName
+    local object = v.object
     local vertx = v.verticalOffsetX
     local verty = v.verticalOffsetY
     local vertz = v.verticalOffsetZ
